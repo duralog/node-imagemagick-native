@@ -208,6 +208,23 @@ static Handle<Value> Convert(const Arguments& args) {
             sprintf( geometryString, "%dx%d", width, height );
             if (debug) printf( "resize to: %s\n", geometryString );
 
+            unsigned int xoffset = obj->Get( String::NewSymbol("xoffset") )->Uint32Value();
+            unsigned int yoffset = obj->Get( String::NewSymbol("yoffset") )->Uint32Value();
+            if (xoffset || yoffset) {
+                //if (debug) printf( "yoffset: %d\n", yoffset );
+                //if (debug) printf( "xoffset: %d\n", xoffset );
+                Magick::Geometry cropGeometry( width, height, xoffset, yoffset, 0, 0 );
+                if (debug) printf( "crop to: %d, %d, %d, %d\n", width, height, xoffset, yoffset );
+                
+                Magick::Color transparent( "white" );
+                if ( strcmp( *format, "PNG" ) == 0 ) {
+                    // make background transparent for PNG
+                    // JPEG background becomes black if set transparent here
+                    transparent.alpha( 1. );
+                }
+                image.extent( cropGeometry, transparent );
+            }
+
             try {
                 image.resize( geometryString );
             }
